@@ -1,0 +1,291 @@
+<!DOCTYPE html>
+<html>
+	<head>
+		<meta charset="utf-8">
+		<meta http-equiv="X-UA-Compatible" content="IE=edge,chrome=1">
+		<title>布局设计</title>
+
+		<!-- <script src="https://code.jquery.com/jquery-2.2.4.min.js" integrity="sha256-BbhdlvQf/xTY9gja0Dq3HiwQF8LaCRTXxZKRutelT44=" crossorigin="anonymous"></script> -->
+		<script type="text/javascript" src="js/angular.min.js"></script>
+		<script type="text/javascript" src="js/snap.svg-min.js"></script>
+		<script type="text/javascript" src="js/snap.svg.zpd.js"></script>
+
+		<style type="text/css">
+			.fl{
+				float: left
+			}
+			.dashed-border{
+				border: 1px dashed;
+			}
+			.panel{
+				padding: 5px;
+			}
+			h2{
+				padding: 0;
+				font-size: 20px;
+				margin: 0;
+			}
+			ul{
+				margin: 0;
+				padding: 0;
+			}
+			ul.none{
+				list-style-type: none;
+				padding: 0;
+				margin: 0;
+			}
+			ul.none li{
+				padding-left: 10px;
+			}
+			ul.none li a{
+				text-decoration: blink;
+				color: blue;
+				cursor: pointer;
+				margin: 5px;
+			}
+			ul.none li a.cur{
+				margin: 4px;
+				color: red;
+				border:1px solid red;
+			}
+			ul.none li a.highlight{
+				color: red;
+			}
+			ul.devcises{
+				min-height: 60px;
+				max-height: 150px;
+				overflow-y: scroll;
+				border: 1px dashed gray;
+			}
+			.device-attr{
+				border: 1px dashed gray;
+				margin-left: 10px;
+				padding: 2px;
+			}
+			.device-attr .attrname{
+				display: inline-block;
+				min-width: 40px;
+			}
+			.device-attr input[type=text]{
+				width: 130px;
+				margin-bottom: 3px;
+			}
+		</style>
+	</head>
+	<body style="overflow: hidden;">
+		<svg width="800" height="600" id="svg" class="fl dashed-border">
+			<g id="draw" width="800" height="600">
+
+			</g>
+		</svg>
+		<div class="fl $scope" ng-app="app" ng-controller="ctrl">
+			<h2>图层</h2>
+			<ul class="none">
+				<li ng-repeat="lay in layouts track by $index">
+					<input type="checkbox" id="{{lay.id}}" ng-model="lay.show"/><label for="{{lay.id}}">{{lay.name}}</label>
+					<div style="display:inline-block" ng-show="lay.show">
+						<a class="btn-add" ng-if="lay.icon" ng-click="toggleAction(lay,'add');" ng-class="{cur:data.curlay==lay && data.action=='add'}">添加</a>
+						<!-- <a class="btn-del" ng-if="lay.icon" ng-click="toggleAction(lay,'del');" ng-class="{cur:data.curlay==lay && data.action=='del'}">删除</a>
+						<a class="btn-add" ng-if="lay.icon" ng-click="toggleAction(lay,'move');" ng-class="{cur:data.curlay==lay && data.action=='move'}">移动</a> -->
+					</div>
+					<ul ng-if="lay.icon" class="none devcises" ng-show="lay.show">
+					<li ng-repeat="dev in lay.devices track by $index"><a ng-click="toggleDevice(dev);" ng-class="{highlight:data.curdev==dev}">{{dev.id}}</a> <a class="btn-del" ng-click="removeDevice(lay, dev, $index);">删除</a><input type="checkbox" id="devalarm" ng-model="dev.alarm"/></li>
+					</ul>
+				</li>
+			</ul>
+			<div ng-show="data.curdev">
+				<h2>设备属性</h2>
+				<div class="device-attr">
+					<span class="attrname">ID:</span><input type="text" ng-model="data.curdev.id"><br/>
+					<span class="attrname">名称:</span><input type="text" ng-model="data.curdev.name"><br/>
+					<input type="checkbox" id="devalarm" ng-model="data.curdev.alarm"/><label for="devalarm">报警</label>
+				</div>
+			</div>
+		</div>
+<script>
+	if(!window.localStorage.jk)
+		window.localStorage.jk = '[{"id":1473448006892,"x":710,"y":197},{"id":1473448008358,"x":711,"y":28},{"id":1473448010173,"x":455,"y":20},{"id":1473448011835,"x":603,"y":201},{"id":1473448014252,"x":22,"y":35},{"id":1473448022724,"x":133,"y":202}]';
+	var app = angular.module('app', []);
+	app.controller('ctrl', function($scope) {
+		$scope.layouts = [
+			{name:"网格", id:"lgrid",transform:"",url:'svg/grid.svg'},
+			{name:"底图", id:"dt",transform:"",url:'svg/lay1.svg'},
+			{name:"监控", id:"jk",transform:"s0.05",url:'svg/jk.svg',icon:true,attr:{}},
+			{name:"消防", id:"xf",transform:"s0.16",url:'svg/xf.svg',icon:true},
+			{name:"巡更", id:"xg",transform:"s0.3",url:'svg/mark.svg',icon:true},
+			{name:"电脑", id:"dn",transform:"s0.05",url:'svg/computer.svg',icon:true},
+		];
+		xx=$scope;
+		$scope.layoutmap = {};
+		var svg = Snap("#svg");
+		var paper = svg.paper;
+		var draw = paper.select("g");
+		$scope.svg = svg;
+		$scope.paper = paper;
+		$scope.draw = draw;
+		var data = {};
+		$scope.data = data;
+		svg.zpd({drag:false,pan:true,zoom:true}, function (err, zpdElement) {
+			data.zpdElement = zpdElement;
+			zpdElement.data.root.addEventListener('mousedown', function(event) {
+				var p = zpdElement.data.stateOrigin;
+				if(data.curlay && data.action=='add'){
+					var dev = {
+						id:Date.now(),
+						x:p.x,
+						y:p.y
+					};
+					data.curlay.addDevice(dev, true);
+					$scope.toggleDevice(dev);
+				}
+			}, false);
+		});
+		angular.forEach($scope.layouts, function(lay, index) {
+			lay.show = true;
+			// init svg
+			if(lay.url){
+				lay.g = draw.g();
+				Snap.load(lay.url, function (f) {
+					var g = f.select("g");
+					g.transform(lay.transform);
+					if(lay.icon){
+						lay.newicon = function(){
+							var g2 = g.clone();
+							return g2;
+						}
+						lay.addDevice = function(dev,addtolist){
+							dev.g = lay.newicon();
+							if(lay.attr)
+								dev.g.attr(lay.attr);
+							dev.move = function(x,y){
+								dev.x = x;
+								dev.y = y;
+								dev.g.transform("t"+(dev.x-15)+","+(dev.y-15)+lay.transform);
+							}
+							dev.move(dev.x, dev.y);
+							lay.g.append(dev.g);
+							dev.g.mousedown(function(event){
+								if(data.action == 'del' && data.curlay == lay){
+									$scope.removeDevice(lay, dev, lay.devices.indexOf(dev));
+								}
+								else if(data.action == 'move'){
+									dev.cur = true;
+									dev.g.attr("fill","red");
+								}
+								else{
+									$scope.toggleDevice(dev);	
+								}
+								$scope.$apply();
+							});
+							if(addtolist){
+								if(!lay.devices)
+									lay.devices=[];
+								lay.devices.push(dev);
+							}
+							$scope.$apply();
+						}
+						try{
+							var devices = [];
+							angular.forEach(JSON.parse(window.localStorage[lay.id]), function(dev, dindex) {
+								lay.addDevice(dev,true);
+							});
+						}
+						catch(e){
+
+						}
+					}
+					else{
+						lay.g.append(g);
+					}
+					$scope.$apply();
+				});
+			}
+			else{
+				lay.g = draw.select('#'+lay.id);
+			}
+			$scope.layoutmap[lay.id] = lay;
+			$scope.$watch("layoutmap."+lay.id+" && layoutmap."+lay.id+".show",function(newVal, oldValue) {
+				lay.g.attr("display",$scope.layoutmap[lay.id].show?"":"none");
+			});
+		});
+		$scope.isShowLayout = function(lid){
+			return ;
+		};
+		$scope.localStorage = function(){
+			var attrs = ['id','x','name','y'];
+			angular.forEach($scope.layouts, function(lay, lindex) {
+				if(lay.icon && lay.devices){
+					var devices = [];
+					angular.forEach(lay.devices, function(dev, dindex) {
+						var d = {};
+						angular.forEach(attrs, function(attr) {d[attr] = dev[attr];});
+						devices.push(d);
+					});
+					window.localStorage[lay.id] = JSON.stringify(devices);
+				}
+			});
+		};
+		$scope.getDeviceCount = function(){
+			$scope.deviceCount = 0;
+			angular.forEach($scope.layouts, function(lay, lindex) {
+				if(lay.icon && lay.devices){
+					$scope.deviceCount += lay.devices.length;
+				}
+			});
+			return $scope.deviceCount;
+		};
+		$scope.$watch("getDeviceCount()",function(newVal, oldValue) {
+			$scope.localStorage();
+		});
+		$scope.$watch("data.action",function(newVal, oldValue) {
+			data.zpdElement.options.pan = data.action != 'move';
+		});
+		
+		$scope.toggleAction = function(lay, action){
+			if(data.curlay == lay && data.action == action){
+				data.action = data.curlay = null;
+			}
+			else{
+				data.curlay = lay;
+				data.action = action;
+			}
+		};
+		$scope.toggleDevice = function(dev){
+			var olddev = data.curdev;
+			if(data.curdev){
+				// toggle
+				data.curdev.g.attr("fill","black");
+				data.curdev = null;
+			}
+			if(dev && olddev!=dev){
+				data.curdev = dev;
+				data.curdev.g.attr("fill","red");
+			}
+		};
+		$scope.removeDevice = function(lay, dev, index){
+			dev.g.remove();
+			lay.devices.splice(index,1);
+		};
+
+		setInterval(function (argument) {
+			angular.forEach($scope.layouts, function(lay, lindex) {
+				if(lay.devices){
+					angular.forEach(lay.devices, function(dev, dindex) {
+						if(dev.alarm){
+							if(dev.state == undefined)
+								dev.state = Math.random()>0.5;
+							dev.g.attr("fill", dev.state?"red":"black");
+							dev.state = !dev.state;
+						}
+						else if(dev.state){
+							dev.state = false;
+							dev.g.attr("fill", "black");
+						}
+					});
+				}
+			});
+		}, 500);
+	});
+</script>
+	</body>
+</html>
