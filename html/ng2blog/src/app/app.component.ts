@@ -1,12 +1,16 @@
 import { Component } from '@angular/core';
 
 
-import {IndexComponent} from './components'
-
 @Component({
   selector: 'app',
   template: `
-  <c-index></c-index>
+  <c-top></c-top>
+  <div class="main">
+  	<c-left></c-left>
+  	<c-main></c-main>
+  	<div style="clear:both;"></div>
+  </div>
+  <c-bottom></c-bottom>
   `
 })
 export class AppComponent { }

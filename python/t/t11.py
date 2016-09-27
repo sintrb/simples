@@ -4,7 +4,7 @@ import os, time
 
 import pika
 
-con = pika.BlockingConnection(pika.URLParameters('amqp://t1:t1@192.168.1.110:5672/%2f'))
+con = pika.BlockingConnection(pika.URLParameters('amqp://t1:t1@rpi:5672/%2f'))
 cha = con.channel()
 
 # Turn on delivery confirmations

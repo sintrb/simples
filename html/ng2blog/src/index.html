@@ -1,11 +1,10 @@
 <!DOCTYPE html>
 <html>
   <head>
-    <title>Angular QuickStart</title>
+    <title><%= webpackConfig.metadata.title %></title>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1">
-    <title><%= webpackConfig.metadata.title %></title>
-
+    <link rel="stylesheet" type="text/css" href="/assert/base.css">
     <meta name="description" content="<%= webpackConfig.metadata.title %>">
 
     <% if (webpackConfig.htmlElements.headTags) { %>
@@ -19,9 +18,7 @@
 
   <!-- 3. Display the application -->
   <body>
-  <center>
     <app>正在加载...</app>
-  </center>
   </body>
 
   <% if (webpackConfig.metadata.isDevServer && webpackConfig.metadata.HMR !== true) { %>

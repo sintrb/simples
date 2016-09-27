@@ -3,19 +3,27 @@ import { Component } from '@angular/core';
 @Component({
   selector: 'c-top',
   template: `
-  <div>
-  	<h1>页面顶</h1>
+  <div class="main-nav">
+    <div class="info"></div>
+    <ul class="navs">
+      <li *ngFor="let lk of links; let isLast=last;">
+        <a (click)="curlink=lk" href="#{{lk.href}}" [ngClass]="{cur:lk == curlink, last:isLast}">{{lk.title}}</a>
+      </li>
+    </ul>
   </div>
   `
 })
-export class TopComponent { }
+export class TopComponent {
+  links = require("./top.json")
+  curlink = this.links[0]
+}
 
 
 @Component({
   selector: 'c-bottom',
   template: `
-  <div>
-  	<h1>页面底部</h1>
+  <div class="bottom">
+    
   </div>
   `
 })
@@ -23,23 +31,31 @@ export class BottomComponent { }
 
 
 @Component({
-  selector: 'c-banner',
+  selector: 'c-left',
   template: `
   <div>
-  	导航条
+  	左侧导航条
   </div>
   `
 })
-export class BannerComponent { }
+export class LeftComponent {
+  links = require("./left.json")
+  curlink = this.links[0]
+}
+
 
 @Component({
-  selector: 'c-index',
+  selector: 'c-main',
   template: `
-  <c-top></c-top>
-  <c-banner></c-banner>
-  <c-bottom></c-bottom>
+  <div>
+    
+  </div>
   `
 })
-export class IndexComponent { }
+export class MainComponent {
+  links = require("./left.json")
+  curlink = this.links[0]
+}
+
 
 
