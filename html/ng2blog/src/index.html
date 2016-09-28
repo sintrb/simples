@@ -4,7 +4,8 @@
     <title><%= webpackConfig.metadata.title %></title>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1">
-    <link rel="stylesheet" type="text/css" href="/assert/base.css">
+    <link rel="stylesheet" type="text/css" href="/assets/loading.css">
+    <link rel="stylesheet" type="text/css" href="/assets/base.css">
     <meta name="description" content="<%= webpackConfig.metadata.title %>">
 
     <% if (webpackConfig.htmlElements.headTags) { %>
@@ -14,11 +15,23 @@
 
     <!-- base url -->
     <base href="<%= webpackConfig.metadata.baseUrl %>">
+
+    <style type="text/css">
+
+
+    </style>
   </head>
 
   <!-- 3. Display the application -->
   <body>
-    <app>正在加载...</app>
+  <app>
+    <div class="ball-pulse-sync" style="text-align: center; margin: 10px;">
+      <div></div>
+      <div></div>
+      <div></div>
+    </div>
+  </app>
+
   </body>
 
   <% if (webpackConfig.metadata.isDevServer && webpackConfig.metadata.HMR !== true) { %>

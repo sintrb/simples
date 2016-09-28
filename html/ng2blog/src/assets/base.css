@@ -34,6 +34,7 @@ body{
 .main-nav .navs li a.last{
 	/*border-right: none;*/
 }
+
 .main-nav .navs li a:hover, .main-nav .navs li a.cur{
 	background-color: #1E88FF;
 	transition:background-color 0.3s linear;
@@ -59,14 +60,17 @@ c-top{
 	position: fixed;
 	top: 0;
 	width: 100%;
+	z-index: 10;
 }
-
+c-bottom{
+	z-index: 10;
+}
 c-left{
 	display: block;
 	position: fixed;
 	top: 56px;
 	left: 0;
-	width: 200px;
+	width: 250px;
 	background: #e8e7e7;
 	height: 100%;
 	box-shadow: 1px 0px 2px #808080;
@@ -75,9 +79,70 @@ c-left{
 c-main{
 	display: block;
 	min-width: 200px;
-	margin-left: 200px;
+	margin-left: 250px;
 	margin-top: 56px;
+	margin-bottom: 56px;
+	padding: 5px;
+}
+
+c-left a.menuitem{
+	color: black;
+	text-decoration: none;
+	padding: 10px 0 10px 15px;
+	border-bottom: 1px solid #d2d2d2;
+	transition:background-color 0.5s linear;
+}
+
+c-left a.menuitem:hover{
+	background: green;
+	background-color: #1E88FF;
+	transition:background-color 0.3s linear;
+}
+
+c-left .menu-hide{
+	/*height: 0px;*/
+	display: none;
+	/*transition:display 0.5s linear;*/
 }
 
 
 
+c-list ul{
+	list-style-type: none;
+	margin: 0px;
+	padding: 0px;
+}
+c-list ul li{
+	list-style: none;
+	margin: 0;
+	padding: 5px;
+	border-bottom: 1px dashed gray;
+	cursor: pointer;
+	transition:background-color 0.5s linear;
+}
+
+c-list ul li:hover{
+	background-color: #1E88FF;
+	transition:background-color 0.3s linear;
+}
+
+c-list ul li .title{
+	font-weight: bold;
+	font-size: 20px;
+}
+
+c-list ul li .desc{
+	font-weight: normal;
+	font-size: 14px;
+}
+
+
+
+
+
+
+
+
+.border-bottom-none{
+	border-bottom-width: 1px;
+}
