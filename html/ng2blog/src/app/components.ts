@@ -1,4 +1,6 @@
 import { Component, Input, Output, EventEmitter } from '@angular/core';
+import { AppService } from './app.service';
+import 'rxjs/add/operator/map'
 
 @Component({
   selector: 'c-corner',
@@ -19,20 +21,21 @@ export class CornerComponent {
   selector: 'c-top',
   template: `
   <div class="main-nav">
-    <c-corner size="40" imageurl="https://img3.doubanio.com/icon/ul51905389-5.jpg" style="display: inline-block; vertical-align: middle;padding:0 20px 0 10px;"></c-corner>
-    <ul class="navs" style="display: inline-block;">
-      <li *ngFor="let lk of links; let isLast=last;">
-        <a (click)="selected=lk;onSelected.emit(lk);" href="#{{lk.href}}" [ngClass]="{cur:lk == selected, last:isLast}">{{lk.title}}</a>
-      </li>
-    </ul>
+    <c-loadding *ngIf="!config"></c-loadding>
+    <div *ngIf="config">
+      <c-corner size="{{config?.logo?.size}}" imageurl="{{config?.logo?.url}}" style="display: inline-block; vertical-align: middle;padding:0 20px 0 10px;"></c-corner>
+      <ul class="navs" style="display: inline-block;">
+        <li *ngFor="let lk of config?.links; let isLast=last;">
+          <a (click)="selected=lk;onSelected.emit(lk);" href="#{{lk.href}}" [ngClass]="{cur:lk == selected, last:isLast}">{{lk.title}}</a>
+        </li>
+      </ul>
+    <div>
   </div>
   `
 })
 export class TopComponent {
-  links = require("./top.json")
-  selected = this.links[0]
+  @Input() config
   @Output('selected') onSelected = new EventEmitter()
-  // this.onSelected.emit(this.selected)
 }
 
   
@@ -45,34 +48,36 @@ export class TopComponent {
   `
 })
 export class BottomComponent { }
-
-
 @Component({
   selector: 'c-left',
   template: `
   <div>
-  	<c-menu [menu]="lk" *ngFor="let lk of links"></c-menu>
+    <c-loadding *ngIf="!config"></c-loadding>
+    <div *ngIf="config">
+  	<c-menu [menu]="lk" *ngFor="let lk of config?.links" (selected)="onSelected.emit($event);"></c-menu>
+    </div>
   </div>
   `
 })
 export class LeftComponent {
-  links = require("./left.json")
-  curlink = this.links[0]
+  @Input() config
+  @Output('selected') onSelected = new EventEmitter()
 }
 
 @Component({
   selector: 'c-menu',
   template: `
   <div style="padding:0px 0px;">
-    <a (click)="menu.hide=!menu.hide;" class="menuitem" href="#{{menu.href}}" style="display:block;">{{menu.title}}</a>
+    <a (click)="menu.hide=!menu.hide;onSelected.emit(menu);" class="menuitem" href="#{{menu.href}}" style="display:block;">{{menu.title}}</a>
     <div *ngIf="menu.children!=null && menu.children.length" [ngClass]="{'menu-hide':menu.hide}" style="padding-left:10px;">
-      <c-menu *ngFor="let lk of menu.children; let isLast=last;" [menu]="lk"></c-menu>
+      <c-menu *ngFor="let lk of menu.children; let isLast=last;" [menu]="lk" (selected)="onSelected.emit($event);"></c-menu>
     </div>
   </div>
   `
 })
 export class MenuComponent {
-  @Input() menu;
+  @Input() menu
+  @Output('selected') onSelected = new EventEmitter()
 }
 
 @Component({
@@ -91,14 +96,15 @@ export class LoaddingComponent {
 @Component({
   selector: 'c-article',
   template: `
-  <div class="ball-pulse-sync">
-    <div></div>
-    <div></div>
-    <div></div>
-  </div>
+    <h2 (click)="onBack.emit(article);">{{article.title}}</h2>
+    <div>
+      {{article.content | articleContentPipe}}
+    </div>
   `
 })
 export class ArticleComponent {
+  @Input() article
+  @Output('back') onBack = new EventEmitter()
 }
 
 @Component({
@@ -106,32 +112,43 @@ export class ArticleComponent {
   template: `
   <ul class="main-list">
     <li *ngFor="let item of list">
-      <a class="title">{{item.title}}</a>
+      <a class="title" (click)="onSelected.emit(item);">{{item.title}}</a>
       <p class="desc">{{item.desc}}</p>
     </li>
   </ul>
   `
 })
 export class ListComponent {
-  list = require("./list.json")
+  @Input() list
+  @Output('selected') onSelected = new EventEmitter()
 }
 
 @Component({
   selector: 'c-main',
   template: `
   <div>
-    <!-- <c-loadding style="text-align: center; padding-top: 30px; display:block;"></c-loadding> -->
-    <c-list></c-list>
-    <!-- <c-article></c-article> -->
+    <c-loadding *ngIf="loading" style="text-align: center; padding-top: 30px; display:block;"></c-loadding>
+    <c-list *ngIf="!loading && !item" [list]="list" (selected)="openArticle($event);"></c-list>
+    <c-article *ngIf="!loading && item" [article]="item"></c-article>
   </div>
   `
 })
 export class MainComponent {
-  loadlist(){
+  @Input() list
+  @Input() loading
+  item = null
 
+  app: AppService
+  constructor(app: AppService) {
+    this.app = app
   }
-  loadarticle(){
 
+  openArticle(article){
+    this.loading = true
+    this.app.getAtricle().subscribe(response => {
+      this.loading = false
+      this.item = response.json()
+    });
   }
 }
 

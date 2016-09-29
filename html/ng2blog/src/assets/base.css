@@ -117,13 +117,23 @@ c-list ul li{
 	margin: 0;
 	padding: 5px;
 	border-bottom: 1px dashed gray;
-	cursor: pointer;
+	/*cursor: pointer;*/
 	transition:background-color 0.5s linear;
 }
-
+c-list ul li a{
+	text-decoration: none;
+	display: block;
+	color: black;
+	cursor: pointer;
+}
+c-list ul li p{
+	text-indent: 0;
+	padding-left: 10px;
+}
 c-list ul li:hover{
-	background-color: #1E88FF;
+	background-color: #b9daff;
 	transition:background-color 0.3s linear;
+	box-shadow: 0px 0px 5px #808080;
 }
 
 c-list ul li .title{
@@ -137,8 +147,9 @@ c-list ul li .desc{
 }
 
 
-
-
+c-loadding{
+	text-align: center; padding-top: 20px; display:block;
+}
 
 
 
