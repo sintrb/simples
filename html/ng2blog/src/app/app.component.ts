@@ -26,6 +26,8 @@ export class AppComponent {
     this.selected = $event;
   }
   onLeftSelected($event){
+    console.log($event)
+    this.app.config.left.selected = $event
     this.app.getArticles();
   }
 }

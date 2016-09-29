@@ -93,7 +93,7 @@ c-left a.menuitem{
 	transition:background-color 0.5s linear;
 }
 
-c-left a.menuitem:hover{
+c-left a.menuitem:hover, c-left a.cur{
 	background: green;
 	background-color: #1E88FF;
 	transition:background-color 0.3s linear;

@@ -54,7 +54,7 @@ export class BottomComponent { }
   <div>
     <c-loadding *ngIf="!config"></c-loadding>
     <div *ngIf="config">
-  	<c-menu [menu]="lk" *ngFor="let lk of config?.links" (selected)="onSelected.emit($event);"></c-menu>
+  	  <c-menu [menu]="lk" *ngFor="let lk of config?.links" [selected]="config.selected" (selected)="onSelected.emit($event);"></c-menu>
     </div>
   </div>
   `
@@ -68,15 +68,16 @@ export class LeftComponent {
   selector: 'c-menu',
   template: `
   <div style="padding:0px 0px;">
-    <a (click)="menu.hide=!menu.hide;onSelected.emit(menu);" class="menuitem" href="#{{menu.href}}" style="display:block;">{{menu.title}}</a>
+    <a (click)="menu.hide=!menu.hide;onSelected.emit(menu);" [ngClass]="{'menuitem':true, 'cur':selected==menu}" href="#{{menu.href}}" style="display:block;">{{menu.title}}</a>
     <div *ngIf="menu.children!=null && menu.children.length" [ngClass]="{'menu-hide':menu.hide}" style="padding-left:10px;">
-      <c-menu *ngFor="let lk of menu.children; let isLast=last;" [menu]="lk" (selected)="onSelected.emit($event);"></c-menu>
+      <c-menu *ngFor="let lk of menu.children; let isLast=last;" [menu]="lk" [selected]="selected" (selected)="onSelected.emit($event);"></c-menu>
     </div>
   </div>
   `
 })
 export class MenuComponent {
   @Input() menu
+  @Input() selected
   @Output('selected') onSelected = new EventEmitter()
 }
 
@@ -97,8 +98,8 @@ export class LoaddingComponent {
   selector: 'c-article',
   template: `
     <h2 (click)="onBack.emit(article);">{{article.title}}</h2>
-    <div>
-      {{article.content | articleContentPipe}}
+    <div [innerHTML]="article | articleContentPipe">
+      
     </div>
   `
 })
@@ -129,7 +130,10 @@ export class ListComponent {
   <div>
     <c-loadding *ngIf="loading" style="text-align: center; padding-top: 30px; display:block;"></c-loadding>
     <c-list *ngIf="!loading && !item" [list]="list" (selected)="openArticle($event);"></c-list>
-    <c-article *ngIf="!loading && item" [article]="item"></c-article>
+    <div *ngIf="!loading && item">
+      <div><a (click)="item=null;">返回列表</a></div>
+      <c-article [article]="item"></c-article>  
+    </div>
   </div>
   `
 })

@@ -6,6 +6,7 @@ export class AppService {
   http: Http
   loading : boolean=true
   articles
+  selectedMenu
   config = {
     top:null,
     left:null
