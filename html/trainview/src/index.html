@@ -1,0 +1,24 @@
+<!DOCTYPE html>
+<html>
+  <head>
+    <title><%= webpackConfig.metadata.title %></title>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1">
+    <link rel="stylesheet" type="text/css" href="/assets/loading.css">
+    <link rel="stylesheet" type="text/css" href="/assets/style.css">
+    <meta name="description" content="<%= webpackConfig.metadata.title %>">
+
+    <!-- base url -->
+    <base href="<%= webpackConfig.metadata.baseUrl %>">
+  </head>
+
+  <body>
+  <app>
+    <div class="ball-pulse-sync" style="text-align: center; margin: 10px;">
+      <div></div>
+      <div></div>
+      <div></div>
+    </div>
+  </app>
+  </body>
+</html>
