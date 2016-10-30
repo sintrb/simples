@@ -5,18 +5,24 @@ import { Http } from '@angular/http';
 export class AppService {
   http: Http
   loading : boolean=true
-  config = {
-
-  }
+  config : any
+  carriage : any
+  carriages : any
   constructor(http: Http) {
     this.http = http
-    this.getConfig()
+    this.loadConfig()
   }
-  getConfig(){
+  loadConfig(){
     this.loading = true;
     this.http.get('/app/config.json').subscribe(response => {
       this.loading = false;
       this.config = response.json()
+      this.carriages = this.config.train.carriages
+      this.carriages.forEach(function(val,ix){
+        val.index = ix + 1
+        val.selected = false
+      })
+      this.carriage = null;
     });
   }
 }

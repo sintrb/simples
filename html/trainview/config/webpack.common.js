@@ -21,7 +21,7 @@ const ContextReplacementPlugin = require('webpack/lib/ContextReplacementPlugin')
  */
 const HMR = helpers.hasProcessFlag('hot');
 const METADATA = {
-  title: 'ng2blog',
+  title: 'train view',
   baseUrl: '/',
   isDevServer: helpers.isWebpackDevServer()
 };
@@ -152,10 +152,10 @@ module.exports = function(options) {
          * Returns file content as string
          *
          */
-        {
-          test: /\.css$/,
-          loaders: ['to-string-loader', 'css-loader']
-        },
+        // {
+        //   test: /\.css$/,
+        //   loaders: ['to-string-loader', 'css-loader']
+        // },
 
         /* Raw loader support for *.html
          * Returns file content as string
@@ -177,8 +177,11 @@ module.exports = function(options) {
 
         /*less
         */
-        {test: /\.css$/, loader: 'style!css'},
-        {test: /\.less$/, loader: 'style!css!less'},
+        // {test: /\.css$/, loader: 'style!css'},
+        // {test: /\.less$/, loader: 'style!css!less'},
+
+        { test: /\.less$/, loader: 'to-string-loader!css-loader!less-loader' }, // use ! to chain loaders
+        { test: /\.css$/, loader: 'to-string-loader!css-loader' },
       ],
 
       postLoaders: [

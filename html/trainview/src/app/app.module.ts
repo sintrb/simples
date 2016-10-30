@@ -7,7 +7,10 @@ import { HttpModule } from '@angular/http';
 
 import { 
   AppComponent,
-  LoaddingComponent
+  LoadingComponent,
+  CarriageComponent,
+  TrainComponent,
+  CarriagePanelComponent
 
 } from './app.components'
 
@@ -17,7 +20,10 @@ import {
   imports:      [ BrowserModule, HttpModule ],
   declarations: [ 
   	AppComponent,
-    LoaddingComponent
+    LoadingComponent,
+    CarriageComponent,
+    TrainComponent,
+    CarriagePanelComponent
 
   ],
   bootstrap:    [ AppComponent ],
