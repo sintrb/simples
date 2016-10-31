@@ -84,7 +84,7 @@ export class AppComponent {
   app: AppService
   constructor(app: AppService) {
     this.app = app
-    console.log(style)
+    // console.log(style)
   }
   add(){
     var ix = this.app.carriages.length + 1;
@@ -126,8 +126,4 @@ export class AppComponent {
       val.selected = true
     })
   }
-}
-
-function drag(){
-
 }

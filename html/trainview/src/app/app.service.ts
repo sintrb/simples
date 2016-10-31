@@ -14,7 +14,7 @@ export class AppService {
   }
   loadConfig(){
     this.loading = true;
-    this.http.get('/app/config.json').subscribe(response => {
+    this.http.get('/assets/config.json').subscribe(response => {
       this.loading = false;
       this.config = response.json()
       this.carriages = this.config.train.carriages
