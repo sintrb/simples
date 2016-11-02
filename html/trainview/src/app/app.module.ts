@@ -10,7 +10,9 @@ import {
   LoadingComponent,
   CarriageComponent,
   TrainComponent,
-  CarriagePanelComponent
+  CarriagePanelComponent,
+  SVGPanelComponent,
+  ElementsPanelComponent
 
 } from './app.components'
 
@@ -23,7 +25,9 @@ import {
     LoadingComponent,
     CarriageComponent,
     TrainComponent,
-    CarriagePanelComponent
+    CarriagePanelComponent,
+    SVGPanelComponent,
+    ElementsPanelComponent
 
   ],
   bootstrap:    [ AppComponent ],

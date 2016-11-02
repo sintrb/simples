@@ -22,7 +22,8 @@ export class AppService {
         val.index = ix + 1
         val.selected = false
       })
-      this.carriage = null;
+      this.carriage =this.carriages[0]
+      this.carriage.selected = true
     });
   }
 }

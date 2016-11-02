@@ -173,7 +173,12 @@ module.exports = function(options) {
         {
           test: /\.(jpg|png|gif)$/,
           loader: 'file'
-        }
+        },
+
+        /*less
+        */
+        {test: /\.css$/, loader: 'style!css'},
+        {test: /\.less$/, loader: 'style!css!less'},
       ],
 
       postLoaders: [
