@@ -170,7 +170,3 @@ export class AppComponent {
     })
   }
 }
-
-function drag(){
-
-}
