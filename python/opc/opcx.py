@@ -8,7 +8,7 @@ from opcua import ua
 class Opcx(object):
     DEFAULT_PORT = 4840
     DEFAULT_URL = "opc.tcp://127.0.1:4840/freeopcua/server/"
-    DEFAULT_URI = "http://opcx.inruan.com"
+    DEFAULT_URI = "http://examples.freeopcua.github.io"
 
 
 class OpcxServer(object):
@@ -32,19 +32,30 @@ class OpcxServer(object):
             obj = self.server.get_objects_node().add_object(self.objix, objname)
             objd = {
                     'obj':obj,
-                    'val':{}
+                    'var':{}
                 }
             self.objmap[objname] = objd
         else:
             objd = self.objmap[objname]
-        if valname not in objd['val']:
+        if valname not in objd['var']:
             var = objd['obj'].add_variable(self.objix, valname, val)
             var.set_writable()
-            objd['val'][valname] = var
+            objd['var'][valname] = var
         else:
-            var = objd['val'][valname]
+            var = objd['var'][valname]
         var.set_value(val)
 
 
 
+
+if __name__ == "__main__":
+    s = OpcxServer()
+    s.setValue("x","d",1)
+    import time
+    s.start()
+    while True:
+        time.sleep(0.1)
+        s.setValue("x","d", int(time.time()))
+        for i in range(100):
+            s.setValue("x","d%04d"%i, int(time.time())-i)
 
