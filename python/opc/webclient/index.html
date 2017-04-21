@@ -1,0 +1,90 @@
+<!DOCTYPE html>
+<html xmlns="http://www.w3.org/1999/xhtml">
+<head>
+	<meta http-equiv="Content-Type" content="text/html; charset=utf-8" />
+	<meta name="viewport" content="width=device-width,height=device-height,maximum-scale=1.0,user-scalable=no">
+	<style type="text/css">
+		[v-cloak] { display: none; }
+		.nodeitem{
+			display: block;
+		}
+		.nodeitem span{
+			display: inline-block;
+			width: 33%;
+		}
+	</style>
+</head>
+<body>
+	<div id="app" v-cloak>
+		<div>
+			<input v-model="form.serveruri" style="width:400px;"><button @click="connect();">Connect</button>
+			<div class="nodeitem">
+				<span>DisplatName</span>
+				<span>BrowserName</span>
+				<span>NodeId</span>
+			</div>
+			<template v-for="n in roots">
+				<node :node="n" :level="0"/>
+			</template >
+		</div>
+	</div>
+
+	<script type="text/javascript" src="/static/vue.min.js"></script>
+	<script type="text/javascript" src="/static/fetch.js"></script>
+	<script type="text/javascript" src="/static/irws.js"></script>
+	<script type="text/javascript">
+		Vue.component('node', {
+			name: 'node',
+			template: `<div><div class="nodeitem" @click="if(node.nodes==null){node.nodes=[];getnodes(node.nodes, node.NodeId);}"><span @click="node.expanded = !node.expanded;">{{node.expanded?"-":"+"}}{{node.DisplayName}}</span><span>{{node.BrowseName}}</span><span>{{node.NodeId}}</span></div> <node v-if="node.expanded" v-for="n in node.nodes" :node="n" :level="level+1"></node></div>`,
+			props: ['node', 'level'],
+			methods:{
+				getnodes: function(nodes, parentId){
+					return app.getnodes(nodes, parentId);
+				}
+			}
+		});
+
+		var app = new Vue({
+			el: '#app',
+			data: {
+				cleints:[],
+				form:{
+					serveruri:'opc.tcp://127.0.0.1:4840/freeopcua/server/',
+				},
+				roots:[]
+			},
+			watch: {
+
+			},
+			methods: {
+				init: function(){
+					
+				},
+				doapi: function(name, params, cbk){
+					var paramspairs = params?Object.keys(params).map(function(k){return encodeURIComponent(k)+'='+encodeURIComponent(params[k]);}).join("&"):"";
+					return fetch('/api/'+name+"?"+paramspairs, {method:'GET'}).then(function(response){return response.json();});
+				},
+				connect: function(){
+					var thiz = this;
+					this.doapi('connect', {serveruri:this.form.serveruri}).then(function(res){
+						console.log(res);
+						thiz.getnodes(thiz.roots,'');
+					});
+				},
+				getnodes: function(nodes, parentId){
+					this.doapi('get_nodes', {parentId:parentId}).then(function(res){
+						console.log(res);
+						nodes.splice(0, nodes.length);
+						res.data.map(function(v){
+							v.nodes = null;
+							v.expanded = false;
+							nodes.push(v);
+						})
+					});
+				}
+			}
+		});
+		app.init();
+	</script>
+</body>
+</html>
