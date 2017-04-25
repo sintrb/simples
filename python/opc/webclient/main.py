@@ -33,10 +33,25 @@ from opcua import ua, Client
 #         nodes = self.client.get_nodes(parentId) if parentId else [self.client.get_root_node()]
 #         return nodes
 
+def get_node_value(node):
+    try:
+        value = str(node.get_value()) or '[empty]'
+    except:
+        value = "";
+    return value;
+
 class ApiHandler(tornado.web.RequestHandler):
+    client = None
     def __init__(self, application, request, **kwargs):
-#         self.client = Client()
         tornado.web.RequestHandler.__init__(self, application, request, **kwargs)
+    @classmethod
+    def clearOpc(cls):
+        try:
+            print 'clear opc client'
+            ApiHandler.client.disconnect()
+            ApiHandler.client = None
+        except:
+            pass
     def ret(self, data=None, code=0, message=None):
         self.set_header('Content-Type', 'application/json; charset=UTF-8')
         if message and code == 0:
@@ -47,6 +62,14 @@ class ApiHandler(tornado.web.RequestHandler):
             'data':data
         }))
         self.finish()
+    def opc_get_node(self, nodeid):
+        if not ApiHandler.client:
+            raise Exception('Not connected')
+        if nodeid:
+            node = ApiHandler.client.get_node(str(nodeid))
+        else:
+            node = ApiHandler.client.get_root_node()
+        return node
     def get(self, apiname):
         func = getattr(self, 'api_%s' % apiname, None)
         if not func:
@@ -83,23 +106,41 @@ class ApiHandler(tornado.web.RequestHandler):
             import traceback
             traceback.print_exc()
             self.ret(message=e.message)
-        
     
     def api_connect(self, serveruri):
-        ApiHandler.client = Client(serveruri)
-        ApiHandler.client.connect()
+        if not ApiHandler.client or ApiHandler.serveruri != serveruri:
+            self.api_disconnect()
+            ApiHandler.client = Client(serveruri)
+            ApiHandler.client.connect()
+            ApiHandler.serveruri = serveruri
+
+    def api_disconnect(self):
+        ApiHandler.clearOpc()
     
     def api_get_nodes(self, parentId):
-        nodes = ApiHandler.client.get_node(str(parentId)).get_children() if parentId else [ApiHandler.client.get_root_node()]
+        node = self.opc_get_node(parentId)
+        if parentId:
+            nodes = node.get_children()
+        else:
+            nodes = [node]
         return [
                 {
                  'NodeId':n.nodeid.to_string(),
                  'DisplayName':n.get_display_name().Text,
-                 'BrowseName':n.get_browse_name().to_string()
+                 'BrowseName':n.get_browse_name().to_string(),
+                 'value':get_node_value(n)
                 }
-                
                 for n in nodes
             ]
+
+    def api_get_node(self, nodeid):
+        node = self.opc_get_node(nodeid)
+        return {
+                 'NodeId':node.nodeid.to_string(),
+                 'DisplayName':node.get_display_name().Text,
+                 'BrowseName':node.get_browse_name().to_string(),
+                 'value':get_node_value(node)
+        }
     
 def main():
     from tornado.options import options, define
@@ -116,7 +157,16 @@ def main():
     server = tornado.httpserver.HTTPServer(tornado_app)
     server.listen(options.port, address='0.0.0.0')
     tornado.ioloop.IOLoop.instance().start()
-    print 'x'
 
 if __name__ == '__main__':
+    # Begin 下面几段只是为了退出进程，和示例无关
+    import signal
+    import sys
+    ApiHandler.clearOpc()
+    def handler(signal_num, frame):
+        print 'Exit!'
+        sys.exit(signal_num)
+    signal.signal(signal.SIGINT, handler)
+    print 'Ctrl+C to exit...'
+    # End
     main()
