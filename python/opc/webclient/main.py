@@ -41,7 +41,8 @@ def get_node_value(node):
     return value;
 
 class ApiHandler(tornado.web.RequestHandler):
-    client = None
+    client = Client
+    clientdata = {}
     def __init__(self, application, request, **kwargs):
         tornado.web.RequestHandler.__init__(self, application, request, **kwargs)
     @classmethod
@@ -50,8 +51,22 @@ class ApiHandler(tornado.web.RequestHandler):
             print 'clear opc client'
             ApiHandler.client.disconnect()
             ApiHandler.client = None
+            ApiHandler.clientdata = {}
         except:
             pass
+    @classmethod
+    def event_notification(cls, event):
+        print("New event recived: ", event)
+    
+    @classmethod
+    def datachange_notification(cls, node, val, data):
+        print node, val, data
+        from wsserver import ChannelSocketHandler
+        ChannelSocketHandler.send_data('opc', {
+            'nodeid': node.nodeid.to_string(),
+            'value':str(val)
+            }, 'datachange')
+    
     def ret(self, data=None, code=0, message=None):
         self.set_header('Content-Type', 'application/json; charset=UTF-8')
         if message and code == 0:
@@ -108,7 +123,7 @@ class ApiHandler(tornado.web.RequestHandler):
             self.ret(message=e.message)
     
     def api_connect(self, serveruri):
-        if not ApiHandler.client or ApiHandler.serveruri != serveruri:
+        if not ApiHandler.client or ApiHandler.client == Client or ApiHandler.serveruri != serveruri:
             self.api_disconnect()
             ApiHandler.client = Client(serveruri)
             ApiHandler.client.connect()
@@ -128,7 +143,10 @@ class ApiHandler(tornado.web.RequestHandler):
                  'NodeId':n.nodeid.to_string(),
                  'DisplayName':n.get_display_name().Text,
                  'BrowseName':n.get_browse_name().to_string(),
-                 'value':get_node_value(n)
+                 'value':get_node_value(n),
+                 'config':ApiHandler.clientdata.setdefault(n.nodeid.to_string(), {
+                        'subscribe':False
+                     })
                 }
                 for n in nodes
             ]
@@ -139,9 +157,26 @@ class ApiHandler(tornado.web.RequestHandler):
                  'NodeId':node.nodeid.to_string(),
                  'DisplayName':node.get_display_name().Text,
                  'BrowseName':node.get_browse_name().to_string(),
-                 'value':get_node_value(node)
+                 'value':get_node_value(node),
+                 'config':ApiHandler.clientdata.setdefault(nodeid, {})
         }
     
+    def api_set_node(self, nodeid, prop, value):
+        if str(value).upper() == 'FALSE':
+            value = False
+        if prop == 'subscribe':
+            ApiHandler.sub = ApiHandler.client.create_subscription(10, ApiHandler)
+            try:
+                if value:
+                    ApiHandler.sub.subscribe_data_change(self.opc_get_node(nodeid))
+                else:
+                    ApiHandler.sub.unsubscribe(ApiHandler)
+            except Exception, e:
+                print e
+                
+        ApiHandler.clientdata.setdefault(nodeid, {})[prop] = value
+        print ApiHandler.clientdata
+
 def main():
     from tornado.options import options, define
     from wsserver import ChannelSocketHandler

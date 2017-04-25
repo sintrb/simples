@@ -9,7 +9,7 @@
 		// 打开Socket
 		thiz.queue = [];
 		thiz.subscribeMap = {};
-		['onopen', 'onclose'].forEach(function(m){
+		['onopen', 'onclose', 'onerror'].forEach(function(m){
 			if(options[m]){
 				thiz[m] = options[m];
 			}
@@ -19,6 +19,10 @@
 				var msg = thiz.queue.shift();
 				ws.send(msg);
 			}
+		};
+		ws.onerror = function(){
+			if(thiz.onerror)
+				thiz.onerror();
 		};
 		thiz.rawsend = function(data){
 			if(thiz.isclose)
