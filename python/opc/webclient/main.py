@@ -24,14 +24,6 @@ class IndexHandler(tornado.web.RequestHandler):
             self.write(f.read())
 
 from opcua import ua, Client
-# class OpcUAClient(object):
-#     def conncet(self, serveruri):
-#         '''Connect to OPCUA server'''
-#         self.client = Client(serveruri)
-#         self.client.connect()
-#     def get_nodes(self, parentId):
-#         nodes = self.client.get_nodes(parentId) if parentId else [self.client.get_root_node()]
-#         return nodes
 
 def get_node_value(node):
     try:
@@ -41,6 +33,7 @@ def get_node_value(node):
     return value;
 
 class ApiHandler(tornado.web.RequestHandler):
+    serveruri = None
     client = Client
     clientdata = {}
     def __init__(self, application, request, **kwargs):

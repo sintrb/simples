@@ -104,7 +104,7 @@
 		});
 		Vue.component('node', {
 			name: 'node',
-			template: `<div><div class="nodeitem"><span class="displayname"><em class="toggle" @click="$event.cancelBubble = true; node.nodes=[];getnodes(node.nodes, node.NodeId);">R</em> <em @click="node.expanded = !node.expanded;if(node.nodes==null){node.nodes=[];getnodes(node.nodes, node.NodeId);}" style="border: 1px solid #808080;padding: 0;">{{(node.expanded?"-":"+")}}</em>{{"-".repeat(level)}}{{node.DisplayName}}</span><span class="browsename">{{node.BrowseName}}</span><span class="value" @click="getnode(node);">[<em class="checkbox" :class="{checked:node.config.subscribe}" @click="$event.cancelBubble = true; setnode(node,'subscribe', !node.config.subscribe);">S</em>]<value :value="node.value"></value></span><span class="nodeid">{{node.NodeId}}</span></div> <node v-if="node.expanded" v-for="n in node.nodes" :node="n" :level="level+1"></node></div>`,
+			template: `<div><div class="nodeitem"><span class="displayname"><em class="toggle" @click="$event.cancelBubble = true; node.nodes=[];getnodes(node.nodes, node.NodeId);">R</em> <em @click="node.expanded = !node.expanded;if(node.nodes==null){node.nodes=[];getnodes(node.nodes, node.NodeId);}" style="border: 1px solid #808080;padding: 0;">{{(node.expanded?"-":"+")}}</em>{{"-".repeat(level)}}{{node.DisplayName}}</span><span class="browsename">{{node.BrowseName}}</span><span class="value" @click="getnode(node);">[<em class="checkbox" :class="{checked:node.config.data}" @click="$event.cancelBubble = true; setnode(node,'data', !node.config.data);">D</em> <em class="checkbox" :class="{checked:node.config.event}" @click="$event.cancelBubble = true; setnode(node,'event', !node.config.event);" v-if="false">E</em>]<value :value="node.value"></value></span><span class="nodeid">{{node.NodeId}}</span></div> <node v-if="node.expanded" v-for="n in node.nodes" :node="n" :level="level+1"></node></div>`,
 			props: ['node', 'level'],
 			methods:{
 				getnodes: function(nodes, parentId){
@@ -124,7 +124,7 @@
 			data: {
 				cleints:[],
 				form:{
-					serveruri:'opc.tcp://127.0.0.1:4840/freeopcua/server/',
+					serveruri: window.localStorage.opcurl || 'opc.tcp://127.0.0.1:4840/freeopcua/server/',
 				},
 				roots:[],
 				loadding:false,
@@ -154,7 +154,7 @@
 								setTimeout(thiz.initws, 1000);
 							}
 						});
-						this.ws.subscribe('datachange', function(data){
+						this.ws.data('datachange', function(data){
 							if(data && data.nodeid in thiz.nodemap){
 								thiz.nodemap[data.nodeid].value = data.value;
 							}
@@ -193,9 +193,15 @@
 				},
 				connect: function(){
 					var thiz = this;
+					if(window.localStorage.opcurl != this.form.serveruri){
+						this.roots = null;
+					}
+					window.localStorage.opcurl = this.form.serveruri;
 					this.doapi('connect', {serveruri:this.form.serveruri}).then(function(res){
-						if(!thiz.roots || !thiz.roots.length)
+						if(!thiz.roots || !thiz.roots.length){
+							thiz.roots = [];
 							thiz.getnodes(thiz.roots,'');
+						}
 					});
 				},
 				disconnect: function(){
@@ -210,14 +216,15 @@
 				getnodes: function(nodes, parentId){
 					var thiz = this;
 					this.doapi('get_nodes', {parentId:parentId}).then(function(res){
-						console.log(res);
 						nodes.splice(0, nodes.length);
-						res.data.map(function(v){
-							v.nodes = null;
-							v.expanded = false;
-							nodes.push(v);
-							thiz.nodemap[v.NodeId] = v;
-						})
+						if(res && res.data){
+							res.data.map(function(v){
+								v.nodes = null;
+								v.expanded = false;
+								nodes.push(v);
+								thiz.nodemap[v.NodeId] = v;
+							});
+						}
 					});
 				},
 				setnode: function(node, prop, value){
