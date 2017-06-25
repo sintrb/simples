@@ -79,6 +79,14 @@
 			</g>
 		</svg>
 		<div class="fl $scope" ng-app="app" ng-controller="ctrl">
+			<div>
+				<h2>设备属性</h2>
+				<div class="device-attr">
+					<input type="checkbox" id="ck-panable" ng-model="data.panable"/><label for="ck-panable">面板可移动</label><br/>
+					<input type="checkbox" id="ck-dragable" ng-model="data.dragable"/><label for="ck-dragable">点位可拖动</label>
+				</div>
+			</div>
+
 			<h2>图层</h2>
 			<ul class="none">
 				<li ng-repeat="lay in layouts track by $index">
@@ -98,18 +106,22 @@
 				<div class="device-attr">
 					<span class="attrname">ID:</span><input type="text" ng-model="data.curdev.id"><br/>
 					<span class="attrname">名称:</span><input type="text" ng-model="data.curdev.name"><br/>
+					<span class="attrname">X:</span><input type="text" ng-model="data.curdev.x"><br/>
+					<span class="attrname">Y:</span><input type="text" ng-model="data.curdev.y"><br/>
 					<input type="checkbox" id="devalarm" ng-model="data.curdev.alarm"/><label for="devalarm">报警</label>
 				</div>
 			</div>
 		</div>
 <script>
 	if(!window.localStorage.jk)
-		window.localStorage.jk = '[{"id":1473448006892,"x":710,"y":197},{"id":1473448008358,"x":711,"y":28},{"id":1473448010173,"x":455,"y":20},{"id":1473448011835,"x":603,"y":201},{"id":1473448014252,"x":22,"y":35},{"id":1473448022724,"x":133,"y":202}]';
+		window.localStorage.jk = '[]';
 	var app = angular.module('app', []);
 	app.controller('ctrl', function($scope) {
 		$scope.layouts = [
 			{name:"网格", id:"lgrid",transform:"",url:'svg/grid.svg'},
-			{name:"底图", id:"dt",transform:"",url:'svg/lay1.svg'},
+			{name:"底图", id:"dt0",transform:"",url:'svg/lay1.svg'},
+			{name:"底图2", id:"dt2",transform:"",url:'svg/2.svg'},
+			{name:"底图4", id:"dt4",transform:"",url:'svg/4.svg'},
 			{name:"监控", id:"jk",transform:"s0.05",url:'svg/jk.svg',icon:true,attr:{}},
 			{name:"消防", id:"xf",transform:"s0.16",url:'svg/xf.svg',icon:true},
 			{name:"巡更", id:"xg",transform:"s0.3",url:'svg/mark.svg',icon:true},
@@ -123,9 +135,12 @@
 		$scope.svg = svg;
 		$scope.paper = paper;
 		$scope.draw = draw;
-		var data = {};
+		var data = {
+			panable:false,
+			dragable:false,
+		};
 		$scope.data = data;
-		svg.zpd({drag:false,pan:true,zoom:true}, function (err, zpdElement) {
+		svg.zpd({drag:false,pan:false,zoom:true,touch:false}, function (err, zpdElement) {
 			data.zpdElement = zpdElement;
 			zpdElement.data.root.addEventListener('mousedown', function(event) {
 				var p = zpdElement.data.stateOrigin;
@@ -146,11 +161,18 @@
 			if(lay.url){
 				lay.g = draw.g();
 				Snap.load(lay.url, function (f) {
-					var g = f.select("g");
+					var fg = f.select("g");
+					// var g = f.select("g");
+					// var g = f.select("g");
+					var g = lay.g.g();
+					g.append(fg);
 					g.transform(lay.transform);
+					// g.remove();
 					if(lay.icon){
+						g.attr({ display : "none" });
 						lay.newicon = function(){
 							var g2 = g.clone();
+							g2.attr({display : "block"});
 							return g2;
 						}
 						lay.addDevice = function(dev,addtolist){
@@ -175,7 +197,21 @@
 								else{
 									$scope.toggleDevice(dev);	
 								}
+								dev.dx = 0;
+								dev.dy = 0;
 								$scope.$apply();
+							});
+							dev.g.drag(function(dx, dy) {
+								if(!data.panable && data.dragable){
+									var sx = $scope.data.zpdElement.data.stateTf.a;
+									var sy = $scope.data.zpdElement.data.stateTf.d;
+									dx *= sx;
+									dy *= sy;
+									dev.move(dev.x+(dx-dev.dx), dev.y+(dy-dev.dy));
+									dev.dx = dx;
+									dev.dy = dy;
+									$scope.$apply();
+								}
 							});
 							if(addtolist){
 								if(!lay.devices)
@@ -207,6 +243,7 @@
 			$scope.$watch("layoutmap."+lay.id+" && layoutmap."+lay.id+".show",function(newVal, oldValue) {
 				lay.g.attr("display",$scope.layoutmap[lay.id].show?"":"none");
 			});
+			window.xx = $scope;
 		});
 		$scope.isShowLayout = function(lid){
 			return ;
@@ -238,9 +275,11 @@
 			$scope.localStorage();
 		});
 		$scope.$watch("data.action",function(newVal, oldValue) {
-			data.zpdElement.options.pan = data.action != 'move';
+			
 		});
-		
+		$scope.$watch("data.panable",function(newVal, oldValue) {
+			data.zpdElement.options.pan = newVal;
+		});
 		$scope.toggleAction = function(lay, action){
 			if(data.curlay == lay && data.action == action){
 				data.action = data.curlay = null;
